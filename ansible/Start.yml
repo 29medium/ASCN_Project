@@ -1,0 +1,10 @@
+---
+- name: playbook for kluster creation
+  hosts: masters
+  remote_user: utilizador
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  connection: ssh
+  roles:
+    - role: master

@@ -1,0 +1,112 @@
+- name: Configure kubernets apt key
+  ansible.builtin.apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add Kubernetes' APT repository
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: 'kubernetes.list'
+
+- name: Install kubernetes
+  apt:
+    pkg:
+    - kubelet=1.22.4-00
+    - kubeadm=1.22.4-00
+    - kubectl=1.22.4-00
+    state: present
+
+- name: disable swap
+  shell: |
+          swapoff -a
+          sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+- name: Enable kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Set system configurations for Kubernetes networking
+  copy:
+    dest: /etc/sysctl.d/99-kubernetes-cri.conf
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+      net.ipv4.ip_forward = 1
+  register: networking
+
+- name: Apply new settings
+  command: sysctl --system
+  when: networking.changed
+
+- name: create Docker config directory
+  file: 
+    path: /etc/docker 
+    state: directory
+
+- name: changing Docker to systemd driver
+  copy:
+    dest: /etc/docker/daemon.json
+    content: |
+        {
+        "exec-opts": ["native.cgroupdriver=systemd"]
+        }
+
+- name: Configure Docker apt key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: latest
+
+# sudo apt update
+# sudo apt install -y curl gnupg2 software-properties-common apt-transport-https ca-certificates
+# curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+# sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+# sudo apt update
+# sudo apt install -y containerd.io docker-ce docker-ce-cli
+
+
+#- name: install containerd
+#  apt:
+#    name: containerd
+#    state: latest
+
+#- name: create containerd directory
+#  ansible.builtin.file:
+#    path: /etc/containerd
+#    state: directory
+#    mode: '0755'
+  
+#- name: finish containerd instalation
+#  shell: |
+#          containerd config default | tee /etc/containerd/config.toml
+#          systemctl restart containerd
+
+
+
+
+
+
+
+#- name: Create containerd config file
+#  ansible.builtin.file:
+#    path: /etc/modules-load.d/containerd.conf
+#    state: touch
+
+#- name: Add conf for containerd
+#  blockinfile:
+#    path: "/etc/modules-load.d/containerd.conf"
+#    block: |
+#          overlay
+#          br_netfilter
+
+- name: resset kubernetes
+  shell: kubeadm reset --force

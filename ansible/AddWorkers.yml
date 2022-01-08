@@ -1,0 +1,39 @@
+---
+- hosts: masters
+  become: yes
+  become_user: root
+  tasks:
+    - name: get cluster_initialized file
+      slurp: 
+        src: /root/cluster_initialized.txt
+      register: join
+
+    - name: get join command
+      set_fact: 
+        join: "{{ join.[content] | regex_search('kubeadm join ', '\\1') | first }}"
+    
+    - name: Print join
+      debug:
+        msg: "{{ item.key }} is {{ item.value }}, "
+      loop: "{{ lookup('dict', join) }}"
+
+    - name: Register dummy host with variable
+      add_host:
+        name: "DUMMY_HOST"
+        PLAY1VAR_NEW: " {{ join }}"
+
+
+- hosts: workers
+  become: yes
+  tasks:
+    - name: Echo the output - PLAY1 variable vaule
+      shell: cat {{ hostvars['DUMMY_HOST']['PLAY1VAR_NEW'] }} |tail -1
+      register: join
+    #- name: Print join
+    #  ansible.builtin.debug:
+    #    msg: "{{ join }}"
+    - name: join cluster
+      shell: "{{ hostvars['control1'].join_command }} >> node_joined.txt"
+      args:
+        chdir: $HOME
+        creates: node_joined.txt
