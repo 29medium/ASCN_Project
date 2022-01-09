@@ -108,5 +108,3 @@
 #          overlay
 #          br_netfilter
 
-- name: resset kubernetes
-  shell: kubeadm reset --force
