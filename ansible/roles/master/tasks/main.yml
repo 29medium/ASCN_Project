@@ -31,4 +31,4 @@
     creates: pod_network_setup.txt
 
 - name: Copy join command to local file
-  local_action: copy content="{{ join_command.stdout_lines[-2][0:-1] }}{{ join_command.stdout_lines[-1] }}" dest="./join-command"
+  local_action: copy content="{{ join_command.stdout_lines[-2][0:-1] }}{{ join_command.stdout_lines[-1] }}" dest="/home/utilizador/ansible/roles/workers/files/join-command"

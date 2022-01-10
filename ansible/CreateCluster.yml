@@ -8,3 +8,9 @@
   connection: ssh
   roles:
     - role: master
+
+- name: Adding workers
+  hosts: workers
+  become: yes
+  roles:
+    - role: workers

@@ -1,1 +1,0 @@
-kubeadm join 10.132.0.8:6443 --token lw7hvt.7e8z09q7ks72qx6m 	--discovery-token-ca-cert-hash sha256:29c30f308003a3ee629c2864edfcbe458bd74a35b8d17bbc4879d1a129b95126 
