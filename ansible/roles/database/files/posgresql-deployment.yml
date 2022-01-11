@@ -6,10 +6,9 @@ metadata:
     app: postgres
 spec:
   ports:
-  - port: 3306
+  - port: 5432
   selector:
     app: postgres
-  clusterIP: None
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -27,24 +26,22 @@ spec:
         app: postgres
     spec:
       containers:
-      - image: postgres:latest
-        name: postgres
+      - name: postgres
+        image: postgres:11
         env:
           # Use secret in real usage
-        - name: POSTGRES_ROOT_PASSWORD
-          value: "123456"
-        - name: POSTGRES_DATABASE
-          value: wikijs
+        - name: POSTGRES_DB
+          value: wiki
         - name: POSTGRES_USER
-          value: wikijsuser
+          value: wikiuser
         - name: POSTGRES_PASSWORD
-          value: "54321"
+          value: "12345"
         ports:
-        - containerPort: 3306
+        - containerPort: 5432
           name: postgres
         volumeMounts:
         - name: postgres-persistent-storage
-          mountPath: /var/lib/postgres
+          mountPath: /var/lib/postregsql/data
       volumes:
       - name: postgres-persistent-storage
         persistentVolumeClaim:

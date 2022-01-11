@@ -1,7 +1,9 @@
 - name: Reset kubernetes
+  become: yes
   shell: kubeadm reset --force
 
 - name: Initialize the cluster
+  become: yes
   shell: kubeadm init --pod-network-cidr=10.244.0.0/16
   args:
     chdir: $HOME
@@ -17,6 +19,7 @@
     group: utilizador
 
 - name: Copy admin.conf to user's kube config
+  become: yes
   copy:
     src: /etc/kubernetes/admin.conf
     dest: .kube/config
@@ -24,11 +27,11 @@
     owner: utilizador
     group: utilizador
 
+- name: Copy the pod network config
+  copy: src=/home/utilizador/ansible/roles/master/files/kube-flannel.yaml dest=/tmp/kube-flannel.yaml mode=0777
+
 - name: Install Pod network
-  shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml >> pod_network_setup.txt
-  args:
-    chdir: $HOME
-    creates: pod_network_setup.txt
+  shell: kubectl apply -f /tmp/kube-flannel.yaml 
 
 - name: Copy join command to local file
   local_action: copy content="{{ join_command.stdout_lines[-2][0:-1] }}{{ join_command.stdout_lines[-1] }}" dest="/home/utilizador/ansible/roles/workers/files/join-command"
