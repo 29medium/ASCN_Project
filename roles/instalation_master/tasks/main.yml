@@ -1,0 +1,77 @@
+#JAVA
+- name: Install Java using Ansible
+  become: yes
+  apt:
+    name: openjdk-11-jdk
+    state: present
+    update_cache: yes
+
+- name: Edit JAVA_HOME 
+  become: yes
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    regexp: '^JAVA_HOME'
+    line: 'JAVA_HOME=/usr'
+
+
+
+- name: Configure apt key
+  ansible.builtin.apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+- name: Add repository
+  apt_repository:
+    repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+    state: present
+    update_cache: true
+    
+
+#ELASTICSEARCH
+- name: Install Elasticsearch
+  apt:
+   name: elasticsearch
+   update_cache: yes
+   
+- name: Configure Elasticsearch
+  lineinfile:
+    dest: /etc/elasticsearch/elasticsearch.yml
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '(network\.host:)', line: 'network.host: "{{ ansible_default_ipv4.address }}"'}
+    - { regexp: '(discovery.seed_hosts:)', line: 'discovery.seed_hosts: []'}
+    - { regexp: '(cluster\.initial_master_nodes:)', line: 'cluster.initial_master_nodes: ["{{ ansible_default_ipv4.address }}"]'}
+
+# Start Elasticsearch
+- name: Starting Elasticsearch
+  service:
+   name: elasticsearch
+   state: started
+  
+
+
+# KIBANA
+- name: Install Kibana
+  apt:
+    name: kibana
+    state: present
+
+- name: Configure kibana
+  lineinfile:
+    dest: /etc/kibana/kibana.yml
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '(server\.host:)', line: "server.host: {{ ansible_default_ipv4.address }}"}
+    - { regexp: '(elasticsearch\.host:)', line: "elasticsearch.hosts: [\"http://{{ ansible_default_ipv4.address }}:9200\"]"}
+
+- name: Start kibana
+  service:
+    name: kibana
+    state: started
+
+

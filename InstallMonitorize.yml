@@ -1,0 +1,12 @@
+- name: playbook elastic search and kibana instalation
+  hosts: masters
+  become: yes
+  roles:
+    - role: instalation_master
+
+- name: playbook for Metricbeat instalation
+  hosts: workers
+  become: yes
+  roles:
+    - role: instalation_worker
+  

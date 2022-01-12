@@ -1,0 +1,11 @@
+---
+- name: playbook for kluster creation
+  hosts: masters
+  roles:
+    - role: setup_master
+
+- name: Adding workers
+  hosts: workers
+  become: yes
+  roles:
+    - role: setup_workers

@@ -1,0 +1,38 @@
+#METRICBEAT
+
+
+- name: Configure Metricbeat apt key
+  ansible.builtin.apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+
+- name: Add Metricbeat repository
+  apt_repository:
+    repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+    state: present
+    update_cache: true
+
+- name: Install Metricbeat with apt
+  apt:
+   name: metricbeat
+   update_cache: yes
+
+- name: Configure Metricbeat
+  lineinfile:
+    dest: /etc/metricbeat/metricbeat.yml
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '  hosts: \[\"localhost\:9200\"\]', line: '  hosts: ["10.132.0.21:9200"]'}
+    - { regexp: '  #host: \"localhost\:5601\"', line: '  host: "10.132.0.21:5601"'}
+
+- name: install indexes
+  shell: metricbeat setup
+
+- name: Starting Metricbeat
+  service:
+   name: metricbeat
+   state: started
+
+

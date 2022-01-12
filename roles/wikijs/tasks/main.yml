@@ -1,0 +1,8 @@
+- name: Copy the files to server location
+  copy: src=/home/utilizador/ansible/roles/wikijs/files/wikijs-deployment.yml dest=/tmp/wikijs-deployment.yml mode=0777
+
+- name: Apply wikijs deployment
+  shell: kubectl apply -f /tmp/wikijs-deployment.yml
+  args:
+    chdir: $HOME 
+

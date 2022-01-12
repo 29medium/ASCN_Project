@@ -1,0 +1,7 @@
+---
+- name: playbook for kubernets and docker instalation
+  hosts: masters, workers
+  become: yes
+  roles:
+    - role: common
+  
