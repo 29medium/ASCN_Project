@@ -1,4 +1,0 @@
-- name: playbook deploying PostgreSQL database
-  hosts: masters
-  roles:
-    - role: database
